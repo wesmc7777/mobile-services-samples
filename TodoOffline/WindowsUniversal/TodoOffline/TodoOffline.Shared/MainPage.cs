@@ -60,11 +60,10 @@ namespace TodoOffline
 
             try
             {
-                // In this example scenario we are demonstrating incremental sync. We only want to 
-                // sync the incomplete todoitems. If another client updated the text or any other 
-                // field after completing the item, it doesn't concern us. So we pass a query to the 
-                // PullAsync() method to pull incomplete todoitems only instead of the entire table.
-                await todoTable.PullAsync(todoTable.Where(todoItem => todoItem.Complete == false));
+                // All items should be synced since other clients might mark an item as complete
+                // The first parameter is a query ID that uniquely identifies the query.
+                // This is used in incremental sync to get only newer items the next time PullAsync is called
+                await todoTable.PullAsync("allTodoItems", todoTable.CreateQuery());
 
                 await RefreshTodoItems();
             }
@@ -129,8 +128,6 @@ namespace TodoOffline
             MobileServiceInvalidOperationException exception = null;
             try
             {
-                // This code refreshes the entries in the list view by querying the TodoItems table.
-                // The query excludes completed TodoItems
                 items = await todoTable
                     .OrderBy(todoItem => todoItem.Text)
                     .ToCollectionAsync();
